@@ -22,6 +22,7 @@
 #include <nc_server.h>
 #include <nc_proxy.h>
 
+//ȫ�ֵ�cex_id����
 static uint32_t ctx_id; /* context generation */
 
 static rstatus_t
@@ -103,6 +104,7 @@ core_ctx_create(struct instance *nci)
         return NULL;
     }
 
+    /* core function */
     /* initialize event handling for client, proxy and server */
     ctx->evb = event_base_create(EVENT_SIZE, &core_core);
     if (ctx->evb == NULL) {
@@ -126,6 +128,7 @@ core_ctx_create(struct instance *nci)
     }
 
     /* initialize proxy per server pool */
+    /* 为后端所有的server pool 初始化proxy, 包括:监听server pool指定的端口等*/
     status = proxy_init(ctx);
     if (status != NC_OK) {
         server_pool_disconnect(ctx);

@@ -135,6 +135,7 @@ conf_server_deinit(struct conf_server *cs)
     log_debug(LOG_VVERB, "deinit conf server %p", cs);
 }
 
+/* 将配置文件中的server转化到context中的server */
 rstatus_t
 conf_server_each_transform(void *elem, void *data)
 {
@@ -152,12 +153,14 @@ conf_server_each_transform(void *elem, void *data)
 
     s->pname = cs->pname;
     s->name = cs->name;
+    //配置后端server的地址, 端口和权重
     s->addrstr = cs->addrstr;
     s->port = (uint16_t)cs->port;
     s->weight = (uint32_t)cs->weight;
 
     nc_memcpy(&s->info, &cs->info, sizeof(cs->info));
 
+    //初始化server connection queue
     s->ns_conn_q = 0;
     TAILQ_INIT(&s->s_conn_q);
 
@@ -242,6 +245,7 @@ conf_pool_deinit(struct conf_pool *cp)
     log_debug(LOG_VVERB, "deinit conf pool %p", cp);
 }
 
+/* ��conf_pool������ transform��server_pool */
 rstatus_t
 conf_pool_each_transform(void *elem, void *data)
 {
@@ -276,7 +280,7 @@ conf_pool_each_transform(void *elem, void *data)
     nc_memcpy(&sp->info, &cp->listen.info, sizeof(cp->listen.info));
     sp->perm = cp->listen.perm;
 
-    sp->key_hash_type = cp->hash;
+    sp->key_hash_type = cp->hash;   //����hash����
     sp->key_hash = hash_algos[cp->hash];
     sp->dist_type = cp->distribution;
     sp->hash_tag = cp->hash_tag;
@@ -296,6 +300,7 @@ conf_pool_each_transform(void *elem, void *data)
     sp->auto_eject_hosts = cp->auto_eject_hosts ? 1 : 0;
     sp->preconnect = cp->preconnect ? 1 : 0;
 
+    // 依据配置文件中的server配置生成server_pool, server的owner为其锁归属的server pool
     status = server_init(&sp->server, &cp->server, sp);
     if (status != NC_OK) {
         return status;
@@ -307,6 +312,7 @@ conf_pool_each_transform(void *elem, void *data)
     return NC_OK;
 }
 
+//�����Ǵ�ӡ��conf��server����Ϣ
 static void
 conf_dump(struct conf *cf)
 {
@@ -1339,6 +1345,7 @@ conf_post_validate(struct conf *cf)
     return NC_OK;
 }
 
+//读取配置文件配置
 struct conf *
 conf_create(char *filename)
 {

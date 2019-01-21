@@ -112,6 +112,7 @@
 static uint64_t msg_id;          /* message id counter */
 static uint64_t frag_id;         /* fragment id counter */
 static uint32_t nfree_msgq;      /* # free msg q */
+// message queue
 static struct msg_tqh free_msgq; /* free msg q */
 static struct rbtree tmo_rbt;    /* timeout rbtree */
 static struct rbnode tmo_rbs;    /* timeout rbtree sentinel */

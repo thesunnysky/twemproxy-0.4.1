@@ -48,7 +48,7 @@
 static int show_help;
 static int show_version;
 static int test_conf;
-static int daemonize;
+static int daemonize;       // 是否以后台进程启动
 static int describe_stats;
 
 static struct option long_options[] = {
@@ -88,6 +88,7 @@ nc_daemonize(int dump_core)
 
     default:
         /* parent terminates */
+        /* fork后父进程退出 */
         _exit(0);
     }
 
@@ -475,6 +476,7 @@ nc_pre_run(struct instance *nci)
     }
 
     if (daemonize) {
+        //以后台方式启动
         status = nc_daemonize(1);
         if (status != NC_OK) {
             return status;
@@ -483,12 +485,14 @@ nc_pre_run(struct instance *nci)
 
     nci->pid = getpid();
 
+    //初始化信号处理函数
     status = signal_init();
     if (status != NC_OK) {
         return status;
     }
 
     if (nci->pid_filename) {
+        //创建pid文件
         status = nc_create_pidfile(nci);
         if (status != NC_OK) {
             return status;
@@ -500,6 +504,7 @@ nc_pre_run(struct instance *nci)
     return NC_OK;
 }
 
+/* server退出前的清理函数 */
 static void
 nc_post_run(struct instance *nci)
 {
@@ -570,14 +575,18 @@ main(int argc, char **argv)
         exit(0);
     }
 
+    /* 判断是否需要后台启动server, 并做signal相关的初始化 */
     status = nc_pre_run(&nci);
     if (status != NC_OK) {
+        //server 启动失败, 清理并退出
         nc_post_run(&nci);
         exit(1);
     }
 
+    /* server main work loop */
     nc_run(&nci);
 
+    /* server main work loop 结束后调用清理函数 */
     nc_post_run(&nci);
 
     exit(1);

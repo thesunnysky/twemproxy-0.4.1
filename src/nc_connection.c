@@ -82,6 +82,7 @@
  */
 
 static uint32_t nfree_connq;       /* # free conn q */
+//connection queue
 static struct conn_tqh free_connq; /* free conn q */
 static uint64_t ntotal_conn;       /* total # connections counter from start */
 static uint32_t ncurr_conn;        /* current # connections */
@@ -314,6 +315,7 @@ conn_init(void)
 {
     log_debug(LOG_DEBUG, "conn size %d", sizeof(struct conn));
     nfree_connq = 0;
+    //init connection queue
     TAILQ_INIT(&free_connq);
 }
 

@@ -97,6 +97,7 @@ array_idx(struct array *a, void *elem)
     return idx;
 }
 
+/* 为数组扩容 */
 void *
 array_push(struct array *a)
 {
@@ -135,6 +136,7 @@ array_pop(struct array *a)
     return elem;
 }
 
+//获取数组idx位置上的元素
 void *
 array_get(struct array *a, uint32_t idx)
 {

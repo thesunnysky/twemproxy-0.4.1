@@ -158,7 +158,9 @@ ketama_update(struct server_pool *pool)
             continue;
         }
 
+        //计算当前server point的百分比
         pct = (float)server->weight / (float)total_weight;
+        //计算公式?
         pointer_per_server = (uint32_t) ((floorf((float) (pct * KETAMA_POINTS_PER_SERVER / 4 * (float)nlive_server + 0.0000000001))) * 4);
         pointer_per_hash = 4;
 
@@ -192,6 +194,7 @@ ketama_update(struct server_pool *pool)
     qsort(pool->continuum, pool->ncontinuum, sizeof(*pool->continuum),
           ketama_item_cmp);
 
+    //排序后检查, 确保排序后是按照hash value(?) 排序
     for (pointer_index = 0;
          pointer_index < ((nlive_server * KETAMA_POINTS_PER_SERVER) - 1);
          pointer_index++) {

@@ -20,6 +20,7 @@
 
 #include <nc_core.h>
 
+#定义message相关的函数指针
 typedef void (*msg_parse_t)(struct msg *);
 typedef rstatus_t (*msg_add_auth_t)(struct context *ctx, struct conn *c_conn, struct conn *s_conn);
 typedef rstatus_t (*msg_fragment_t)(struct msg *, uint32_t, struct msg_tqh *);
@@ -225,6 +226,7 @@ struct msg {
     msg_add_auth_t       add_auth;        /* add auth message when we forward msg */
     msg_failure_t        failure;         /* transient failure response? */
 
+    //coalesce:合并
     msg_coalesce_t       pre_coalesce;    /* message pre-coalesce */
     msg_coalesce_t       post_coalesce;   /* message post-coalesce */
 

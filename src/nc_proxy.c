@@ -142,6 +142,7 @@ proxy_listen(struct context *ctx, struct conn *p)
         return NC_ERROR;
     }
 
+    // 监控server pool 指定的端口
     status = bind(p->sd, p->addr, p->addrlen);
     if (status < 0) {
         log_error("bind on p %d to addr '%.*s' failed: %s", p->sd,
@@ -293,7 +294,7 @@ proxy_accept(struct context *ctx, struct conn *p)
                 return NC_OK;
             }
 
-            /* 
+            /*
              * Workaround of https://github.com/twitter/twemproxy/issues/97
              *
              * We should never reach here because the check for conn_ncurr_cconn()

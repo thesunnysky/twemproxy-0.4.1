@@ -157,6 +157,7 @@ server_init(struct array *server, struct array *conf_server,
     ASSERT(array_n(server) == nserver);
 
     /* set server owner */
+    /* server 的owner是它所归属的pool */
     status = array_each(server, server_each_set_owner, sp);
     if (status != NC_OK) {
         server_deinit(server);
@@ -231,6 +232,7 @@ server_each_preconnect(void *elem, void *data)
         return NC_ENOMEM;
     }
 
+    //连接server
     status = server_connect(pool->ctx, server, conn);
     if (status != NC_OK) {
         log_warn("connect to server '%.*s' failed, ignored: %s",
@@ -491,6 +493,7 @@ server_connect(struct context *ctx, struct server *server, struct conn *conn)
         goto error;
     }
 
+    //设置 unblocking
     status = nc_set_nonblocking(conn->sd);
     if (status != NC_OK) {
         log_error("set nonblock on s %d for server '%.*s' failed: %s",
@@ -508,6 +511,7 @@ server_connect(struct context *ctx, struct server *server, struct conn *conn)
         }
     }
 
+    // add epoll 监听
     status = event_add_conn(ctx->evb, conn);
     if (status != NC_OK) {
         log_error("event add conn s %d for server '%.*s' failed: %s",
@@ -810,12 +814,14 @@ server_pool_each_calc_connections(void *elem, void *data)
     struct server_pool *sp = elem;
     struct context *ctx = data;
 
+    //设置context的最大连接数
     ctx->max_nsconn += sp->server_connections * array_n(&sp->server);
     ctx->max_nsconn += 1; /* pool listening socket */
 
     return NC_OK;
 }
 
+/* core function */
 rstatus_t
 server_pool_run(struct server_pool *pool)
 {
