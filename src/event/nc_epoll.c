@@ -21,6 +21,7 @@
 
 #include <sys/epoll.h>
 
+//core function
 struct event_base *
 event_base_create(int nevent, event_cb_t cb)
 {
@@ -232,6 +233,7 @@ event_del_conn(struct event_base *evb, struct conn *c)
     return status;
 }
 
+//core function
 int
 event_wait(struct event_base *evb, int timeout)
 {

@@ -20,7 +20,7 @@
 
 #include <nc_core.h>
 
-#¶¨ÒåmessageÏà¹ØµÄº¯ÊıÖ¸Õë
+//å®šä¹‰messageç›¸å…³çš„å‡½æ•°æŒ‡é’ˆ
 typedef void (*msg_parse_t)(struct msg *);
 typedef rstatus_t (*msg_add_auth_t)(struct context *ctx, struct conn *c_conn, struct conn *s_conn);
 typedef rstatus_t (*msg_fragment_t)(struct msg *, uint32_t, struct msg_tqh *);
@@ -226,7 +226,7 @@ struct msg {
     msg_add_auth_t       add_auth;        /* add auth message when we forward msg */
     msg_failure_t        failure;         /* transient failure response? */
 
-    //coalesce:ºÏ²¢
+    //coalesce:åˆå¹¶
     msg_coalesce_t       pre_coalesce;    /* message pre-coalesce */
     msg_coalesce_t       post_coalesce;   /* message post-coalesce */
 

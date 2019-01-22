@@ -464,6 +464,7 @@ server_close(struct context *ctx, struct conn *conn)
     conn_put(conn);
 }
 
+//core function
 rstatus_t
 server_connect(struct context *ctx, struct server *server, struct conn *conn)
 {

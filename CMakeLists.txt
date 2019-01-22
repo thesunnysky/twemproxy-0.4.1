@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-project(tewmproxy-0.4.1 VERSION 0.4)
+project(twemproxy-0.4.1 VERSION 0.4)
 
 set(CMAKE_BUILD_TYPE "DEBUG")
 
@@ -12,6 +12,7 @@ message(STATUS "Project root directory is: ${SRC_ROOT}")
 
 add_compile_definitions(HAVE_EPOLL)
 add_compile_definitions(HAVE_STATS)
+add_compile_definitions(NC_DEBUG_LOG)
 add_compile_definitions(NC_VERSION_STRING="0.4.1")
 add_compile_definitions(IOV_MAX=128)
 

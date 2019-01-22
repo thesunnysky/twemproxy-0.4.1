@@ -737,6 +737,7 @@ msg_recv(struct context *ctx, struct conn *conn)
     return NC_OK;
 }
 
+//core
 static rstatus_t
 msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
 {
@@ -864,6 +865,7 @@ msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
     return (n == NC_EAGAIN) ? NC_OK : NC_ERROR;
 }
 
+//core
 rstatus_t
 msg_send(struct context *ctx, struct conn *conn)
 {

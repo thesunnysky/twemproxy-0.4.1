@@ -189,6 +189,7 @@ core_stop(struct context *ctx)
     core_ctx_destroy(ctx);
 }
 
+//core
 static rstatus_t
 core_recv(struct context *ctx, struct conn *conn)
 {
@@ -204,11 +205,13 @@ core_recv(struct context *ctx, struct conn *conn)
     return status;
 }
 
+//core
 static rstatus_t
 core_send(struct context *ctx, struct conn *conn)
 {
     rstatus_t status;
 
+    //msg_send() -> msg_send_chain()
     status = conn->send(ctx, conn);
     if (status != NC_OK) {
         log_debug(LOG_INFO, "send on %c %d failed: status: %d errno: %d %s",
@@ -309,6 +312,7 @@ core_timeout(struct context *ctx)
     }
 }
 
+//core
 rstatus_t
 core_core(void *arg, uint32_t events)
 {
@@ -321,6 +325,7 @@ core_core(void *arg, uint32_t events)
         return NC_OK;
     }
 
+    // get the context associated with this connection.
     ctx = conn_to_ctx(conn);
 
     log_debug(LOG_VVERB, "event %04"PRIX32" on %c %d", events,
