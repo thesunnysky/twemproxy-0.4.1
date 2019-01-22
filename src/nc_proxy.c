@@ -160,6 +160,7 @@ proxy_listen(struct context *ctx, struct conn *p)
         }
     }
 
+    //proxy监听端口号
     status = listen(p->sd, pool->backlog);
     if (status < 0) {
         log_error("listen on p %d on addr '%.*s' failed: %s", p->sd,
@@ -182,6 +183,8 @@ proxy_listen(struct context *ctx, struct conn *p)
         return NC_ERROR;
     }
 
+    //? 为什么前面刚add了 EPOLLIN | EPOLLOUT | EPOLLET 这里就把EPOLLOUT去掉了
+    // 因为proxy listen不需要像客户端写, 只做接受客户端请求的event
     status = event_del_out(ctx->evb, p);
     if (status < 0) {
         log_error("event del out p %d on addr '%.*s' failed: %s",

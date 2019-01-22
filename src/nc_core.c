@@ -22,7 +22,7 @@
 #include <nc_server.h>
 #include <nc_proxy.h>
 
-//ȫ�ֵ�cex_id����
+//context id
 static uint32_t ctx_id; /* context generation */
 
 static rstatus_t
