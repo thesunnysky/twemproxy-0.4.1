@@ -134,6 +134,7 @@ struct context {
 };
 
 
+//nutcracker instance
 struct instance {
     struct context  *ctx;                        /* active context */
     int             log_level;                   /* log level */

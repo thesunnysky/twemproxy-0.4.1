@@ -46,6 +46,7 @@ core_calc_connections(struct context *ctx)
     return NC_OK;
 }
 
+//core
 static struct context *
 core_ctx_create(struct instance *nci)
 {

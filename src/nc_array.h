@@ -50,7 +50,7 @@ array_set(struct array *a, void *elem, size_t size, uint32_t nalloc)
     a->nalloc = nalloc;
 }
 
-//��ȡ���鳤��
+//获取数组的长度
 static inline uint32_t
 array_n(const struct array *a)
 {
