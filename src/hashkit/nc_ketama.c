@@ -24,6 +24,7 @@
 #include <nc_hashkit.h>
 
 #define KETAMA_CONTINUUM_ADDITION   10  /* # extra slots to build into continuum */
+//KETAMA一致性hash算法中每个hash值对应的虚拟节点的数量
 #define KETAMA_POINTS_PER_SERVER    160 /* 40 points per hash */
 #define KETAMA_MAX_HOSTLEN          86
 
@@ -40,6 +41,7 @@ ketama_hash(const char *key, size_t key_length, uint32_t alignment)
         | (results[0 + alignment * 4] & 0xFF);
 }
 
+//qsort排序用到的比较大小的函数, 比较的是server的hash值
 static int
 ketama_item_cmp(const void *t1, const void *t2)
 {
@@ -121,6 +123,7 @@ ketama_update(struct server_pool *pool)
               "%"PRIu32" '%.*s'", nlive_server, nserver, pool->idx,
               pool->name.len, pool->name.data);
 
+    //? continuum addition 的作用是什么?
     continuum_addition = KETAMA_CONTINUUM_ADDITION;
     points_per_server = KETAMA_POINTS_PER_SERVER;
     /*
@@ -181,7 +184,9 @@ ketama_update(struct server_pool *pool)
                                server->name.len, server->name.data,
                                pointer_index - 1);
 
+            //每个hash值在continuum上会有4个虚拟节点
             for (x = 0; x < pointer_per_hash; x++) {
+                //计算ketama hash值
                 value = ketama_hash(host, hostlen, x);
                 pool->continuum[continuum_index].index = server_index;
                 pool->continuum[continuum_index++].value = value;
@@ -191,6 +196,7 @@ ketama_update(struct server_pool *pool)
     }
 
     pool->ncontinuum = pointer_counter;
+    //根据server的hash值进行排序
     qsort(pool->continuum, pool->ncontinuum, sizeof(*pool->continuum),
           ketama_item_cmp);
 

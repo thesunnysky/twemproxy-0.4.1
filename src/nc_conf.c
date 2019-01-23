@@ -245,7 +245,7 @@ conf_pool_deinit(struct conf_pool *cp)
     log_debug(LOG_VVERB, "deinit conf pool %p", cp);
 }
 
-/* ��conf_pool������ transform��server_pool */
+/* 将conf_pool的配置transform到server_pool */
 rstatus_t
 conf_pool_each_transform(void *elem, void *data)
 {
@@ -262,6 +262,7 @@ conf_pool_each_transform(void *elem, void *data)
     sp->idx = array_idx(server_pool, sp);
     sp->ctx = NULL;
 
+    /* proxy connection (listener) */
     sp->p_conn = NULL;
     sp->nc_conn_q = 0;
     TAILQ_INIT(&sp->c_conn_q);

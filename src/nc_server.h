@@ -61,6 +61,7 @@
 
 typedef uint32_t (*hash_t)(const char *, size_t);
 
+//一致性hash环
 struct continuum {
     uint32_t index;  /* server index */
     uint32_t value;  /* hash value */
@@ -74,6 +75,9 @@ struct server {
     struct string      name;          /* hostname:port or [name] (ref in conf_server) */
     struct string      addrstr;       /* hostname (ref in conf_server) */
     uint16_t           port;          /* port */
+    /* server的权重,最终作用的体现是在创建server对应的一致性hash环是权重大的server在hash环上的虚拟节点数量会多,最终落在该
+     * server上的key也就会多
+     */
     uint32_t           weight;        /* weight */
     struct sockinfo    info;          /* server socket info */
 
