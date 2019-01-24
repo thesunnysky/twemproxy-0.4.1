@@ -82,8 +82,10 @@ struct server {
     struct sockinfo    info;          /* server socket info */
 
     uint32_t           ns_conn_q;     /* # server connection */
-    struct conn_tqh    s_conn_q;      /* server connection q */
+    struct conn_tqh    s_conn_q;      /* server connection q */ //proxy和这个redis server之间维护的连接队列
 
+    // proxy有踢除后端server机制，当proxy给某台server转发请求出错次数达到server_failure_limit次,
+    // 则next_retry微妙内不会请求该server.可配置
     int64_t            next_retry;    /* next retry time in usec */
     uint32_t           failure_count; /* # consecutive failures */
 };

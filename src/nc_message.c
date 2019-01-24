@@ -108,6 +108,31 @@
  * client, while (c) and (d) handle the corresponding response from the
  * server.
  */
+/**
+ * twemproxy后端支持多个server pool，为每个server pool分配一个监听端口用于接收客户端的连接。
+ * 客户端和proxy建立连接记作client_conn，发起请求，proxy读取数据，放入req_msg中，
+ * 设置msg的owner为client_conn，proxy根据策略从server pool中选取一个server并且建立连接记作server_conn，
+ * 然后转发req_forward，将req_msg指针放入client_conn的output队列中，同时放入server_conn的input队列，
+ * 然后触发server_conn的写事件，server_conn的写回调函数会从input队列中取出req_msg发送给对应的后端server，
+ * 发送完成后将req_msg放入server_conn的output队列，当req_msg的响应rsp_msg回来后，
+ * 调用rsp_filter(用于判断消息是否为空，是否消息可以不用回复等)和rsp_forward，将req_msg从server_conn的
+ * output队列中取出，建立req_msg和rsp_msg的对应关系(通过msg的peer字段)，通过req_msg的owner找到
+ * client_conn，然后启动client_conn的写事件，client_conn的写回调函数从client_conn的output队列中
+ * 取出req_msg，然后通过peer字段拿到对应的rsp_msg，将其发出去。至此，一次请求从被proxy接收到最后响应给client结束。
+ *    可以看出，整个流程，req_msg内容只有一份，req_msg指针在三个队列中的顺序是：
+
+    1. req_msg => client_conn.outputq
+
+    2. req_msg => server_conn.inputq (req_msg放入client_conn.outputq的同时也放入server_conn.input中)
+
+    3. server_conn.inputq => req_msg
+
+    4. req_msg => server_conn.outputq
+
+    5. server_conn.outputq => req_msg
+
+    6. client_conn.outputq => req_msg
+ */
 
 static uint64_t msg_id;          /* message id counter */
 static uint64_t frag_id;         /* fragment id counter */

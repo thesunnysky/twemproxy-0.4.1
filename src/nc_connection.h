@@ -47,25 +47,29 @@ struct conn {
     socklen_t           addrlen;         /* socket length */
     struct sockaddr     *addr;           /* socket address (ref in server or server_pool) */
 
+    //conn 对应的incoming request queue, 会从conn中读取数据, 组织成msg写入到该queue中
     struct msg_tqh      imsg_q;          /* incoming request Q */
+
+    //conn 对应的output queue, 需要向该conn写的msg会push到该queue中
     struct msg_tqh      omsg_q;          /* outstanding request Q */
     struct msg          *rmsg;           /* current message being rcvd */
     struct msg          *smsg;           /* current message being sent */
 
-    conn_recv_t         recv;            /* recv (read) handler */
-    conn_recv_next_t    recv_next;       /* recv next message handler */
-    conn_recv_done_t    recv_done;       /* read done handler */
-    conn_send_t         send;            /* send (write) handler */
-    conn_send_next_t    send_next;       /* write next message handler */
-    conn_send_done_t    send_done;       /* write done handler */
+    conn_recv_t         recv;            /* recv (read) handler */ //读事件触发时回调
+    conn_recv_next_t    recv_next;       /* recv next message handler */ //实际读数据之前，调这个函数来得到当前正在使用的msg
+    conn_recv_done_t    recv_done;       /* read done handler */ //每次接受一个完整的消息后,回调
+    conn_send_t         send;            /* send (write) handler */ //写时间触发时的回调
+    conn_send_next_t    send_next;       /* write next message handler */ //实际写数据之前, 定位当前要写的msg
+    conn_send_done_t    send_done;       /* write done handler */ //发送完一个msg, 回调一次
     conn_close_t        close;           /* close handler */
     conn_active_t       active;          /* active? handler */
     conn_post_connect_t post_connect;    /* post connect handler */
     conn_swallow_msg_t  swallow_msg;     /* react on messages to be swallowed */
 
-    conn_ref_t          ref;             /* connection reference handler */
+    conn_ref_t          ref;             /* connection reference handler */ //得到一个连接后,将连接加入到相应的队列中
     conn_unref_t        unref;           /* connection unreference handler */
 
+    //这四个队列用来存放msg指针, 和zero copy的实现密切相关
     conn_msgq_t         enqueue_inq;     /* connection inq msg enqueue handler */
     conn_msgq_t         dequeue_inq;     /* connection inq msg dequeue handler */
     conn_msgq_t         enqueue_outq;    /* connection outq msg enqueue handler */
@@ -81,13 +85,13 @@ struct conn {
     unsigned            send_active:1;   /* send active? */
     unsigned            send_ready:1;    /* send ready? */
 
-    unsigned            client:1;        /* client? or server? */
+    unsigned            client:1;        /* client? or server? */ //conn的类型, client和proxy之间:1, proxy和server之间:0
     unsigned            proxy:1;         /* proxy? */
     unsigned            connecting:1;    /* connecting? */
     unsigned            connected:1;     /* connected? */
     unsigned            eof:1;           /* eof? aka passive close? */
     unsigned            done:1;          /* done? aka close? */
-    unsigned            redis:1;         /* redis? */
+    unsigned            redis:1;         /* redis? */ //后端server是redis还是memcached
     unsigned            authenticated:1; /* authenticated? */
 };
 

@@ -205,6 +205,8 @@ struct msg {
     TAILQ_ENTRY(msg)     m_tqe;           /* link in send q / free q */
 
     uint64_t             id;              /* message id */
+
+    //用来匹配在client_conn和server_conn中消息的对应关系
     struct msg           *peer;           /* message peer */
     struct conn          *owner;          /* message owner - client | server */
 

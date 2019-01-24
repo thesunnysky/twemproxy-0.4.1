@@ -329,6 +329,7 @@ proxy_accept(struct context *ctx, struct conn *p)
         break;
     }
 
+    //判断proxy接受的connection是否超过了最大connection数量
     if (conn_ncurr_cconn() >= ctx->max_ncconn) {
         log_debug(LOG_CRIT, "client connections %"PRIu32" exceed limit %"PRIu32,
                   conn_ncurr_cconn(), ctx->max_ncconn);
@@ -383,6 +384,7 @@ proxy_accept(struct context *ctx, struct conn *p)
     return NC_OK;
 }
 
+//epoll注册的read事件的回调函数,用来proxy接受client的连接
 rstatus_t
 proxy_recv(struct context *ctx, struct conn *conn)
 {

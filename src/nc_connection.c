@@ -165,6 +165,10 @@ _conn_get(void)
     return conn;
 }
 
+//core
+// 用来分配conn, 有两种情况:
+// 1. proxy accept client的连接进而分配一个conn结构;
+// 2. proxy主动和后端server建立连接而分配一个conn;
 struct conn *
 conn_get(void *owner, bool client, bool redis)
 {
@@ -260,6 +264,7 @@ conn_get_proxy(void *owner)
 
     conn->proxy = 1;
 
+    //conn->recv是epoll读事件的回调函数, 这里标识proxy在每次接受客户端连接时会调用proxy_rev函数
     conn->recv = proxy_recv;
     conn->recv_next = NULL;
     conn->recv_done = NULL;
