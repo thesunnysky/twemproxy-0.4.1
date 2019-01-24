@@ -370,6 +370,7 @@ redis_error(struct msg *r)
  *
  * Nutcracker only supports the Redis unified protocol for requests.
  */
+//解析redis request消息
 void
 redis_parse_req(struct msg *r)
 {
@@ -1708,6 +1709,7 @@ error:
  *     strings (bulks) with the initial line indicating how many bulks that
  *     will follow. The first byte of a multi bulk reply is always *.
  */
+//解析redis responce消息
 void
 redis_parse_rsp(struct msg *r)
 {

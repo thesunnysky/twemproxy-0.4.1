@@ -395,6 +395,7 @@ req_server_dequeue_omsgq(struct context *ctx, struct conn *conn, struct msg *msg
     stats_server_decr_by(ctx, conn->owner, out_queue_bytes, msg->mlen);
 }
 
+// 在真正从conn读数据之前，需要分配一个req_msg，用于承载读进来的数据
 struct msg *
 req_recv_next(struct context *ctx, struct conn *conn, bool alloc)
 {
@@ -432,6 +433,7 @@ req_recv_next(struct context *ctx, struct conn *conn, bool alloc)
         return NULL;
     }
 
+    //temp: 如果conn当前rmsg不为null, 则返回该msg
     msg = conn->rmsg;
     if (msg != NULL) {
         ASSERT(msg->request);
@@ -497,6 +499,7 @@ req_filter(struct context *ctx, struct conn *conn, struct msg *msg)
                       "from c %d sent after quit req", conn->rmsg->id,
                       conn->rmsg->mlen, conn->sd);
         }
+        //置位结束位
         conn->eof = 1;
         conn->recv_ready = 0;
         req_put(msg);

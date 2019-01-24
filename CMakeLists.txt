@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-project(twemproxy-0.4.1 VERSION 0.4)
+project(tproxy-0.4.1 VERSION 0.4)
 
 set(CMAKE_BUILD_TYPE "DEBUG")
 

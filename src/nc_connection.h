@@ -80,7 +80,7 @@ struct conn {
 
     uint32_t            events;          /* connection io events */
     err_t               err;             /* connection errno */
-    unsigned            recv_active:1;   /* recv active? */
+    unsigned            recv_active:1;   /* recv active? */ //标志位,标识当前conn已经加入到epoll的监测中
     unsigned            recv_ready:1;    /* recv ready? */
     unsigned            send_active:1;   /* send active? */
     unsigned            send_ready:1;    /* send ready? */

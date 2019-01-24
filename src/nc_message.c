@@ -137,7 +137,7 @@
 static uint64_t msg_id;          /* message id counter */
 static uint64_t frag_id;         /* fragment id counter */
 static uint32_t nfree_msgq;      /* # free msg q */
-// message queue
+//sun: free message queue
 static struct msg_tqh free_msgq; /* free msg q */
 static struct rbtree tmo_rbt;    /* timeout rbtree */
 static struct rbnode tmo_rbs;    /* timeout rbtree sentinel */
@@ -221,6 +221,7 @@ _msg_get(void)
 {
     struct msg *msg;
 
+    //从free_msgq中取出msg
     if (!TAILQ_EMPTY(&free_msgq)) {
         ASSERT(nfree_msgq > 0);
 
@@ -230,6 +231,7 @@ _msg_get(void)
         goto done;
     }
 
+    //free_msgq为空, 则alloc一个新的msg
     msg = nc_alloc(sizeof(*msg));
     if (msg == NULL) {
         return NULL;
@@ -326,6 +328,7 @@ msg_get(struct conn *conn, bool request, bool redis)
         msg->pre_coalesce = redis_pre_coalesce;
         msg->post_coalesce = redis_post_coalesce;
     } else {
+        //msg 为memcached
         if (request) {
             msg->parser = memcache_parse_req;
         } else {
@@ -397,6 +400,7 @@ msg_put(struct msg *msg)
     log_debug(LOG_VVERB, "put msg %p id %"PRIu64"", msg, msg->id);
 
     while (!STAILQ_EMPTY(&msg->mhdr)) {
+        //清空msg mbuf, for what?
         struct mbuf *mbuf = STAILQ_FIRST(&msg->mhdr);
         mbuf_remove(&msg->mhdr, mbuf);
         mbuf_put(mbuf);
