@@ -348,6 +348,7 @@ conn_recv(struct conn *conn, void *buf, size_t size)
     ASSERT(conn->recv_ready);
 
     for (;;) {
+        //从conn(conn->fd中读取数据)
         n = nc_read(conn->sd, buf, size);
 
         log_debug(LOG_VERB, "recv on sd %d %zd of %zu", conn->sd, n, size);
@@ -361,6 +362,7 @@ conn_recv(struct conn *conn, void *buf, size_t size)
         }
 
         if (n == 0) {
+            //如果读取的数据长度为0,则表示当前conn已经关闭了连接
             conn->recv_ready = 0;
             conn->eof = 1;
             log_debug(LOG_INFO, "recv on sd %d eof rb %zu sb %zu", conn->sd,
@@ -368,6 +370,7 @@ conn_recv(struct conn *conn, void *buf, size_t size)
             return n;
         }
 
+        // 代码到了这里一般是发生了的错误, 处理可能出现的错误
         if (errno == EINTR) {
             log_debug(LOG_VERB, "recv on sd %d not ready - eintr", conn->sd);
             continue;

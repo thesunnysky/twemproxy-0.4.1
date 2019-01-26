@@ -473,6 +473,10 @@ req_make_reply(struct context *ctx, struct conn *conn, struct msg *req)
     return NC_OK;
 }
 
+//过滤msg,三种情况:
+// 1. msg为空
+// 2. msg为"quit"类型的;
+// 3. conn尚未认证;
 static bool
 req_filter(struct context *ctx, struct conn *conn, struct msg *msg)
 {
@@ -555,6 +559,7 @@ req_forward_stats(struct context *ctx, struct server *server, struct msg *msg)
     stats_server_incr_by(ctx, server, request_bytes, msg->mlen);
 }
 
+//core
 static void
 req_forward(struct context *ctx, struct conn *c_conn, struct msg *msg)
 {
@@ -614,13 +619,16 @@ req_forward(struct context *ctx, struct conn *c_conn, struct msg *msg)
               msg->mlen, msg->type, keylen, key);
 }
 
+//每次读取完并解析完conn中的数据后调用
+//msg: current msg
+//nmsg: next message
 void
 req_recv_done(struct context *ctx, struct conn *conn, struct msg *msg,
               struct msg *nmsg)
 {
     rstatus_t status;
     struct server_pool *pool;
-    struct msg_tqh frag_msgq;
+    struct msg_tqh frag_msgq;   // 如果msg需要fragment, fragment_msgq用来存放fragment后的数据
     struct msg *sub_msg;
     struct msg *tmsg; 			/* tmp next message */
 
@@ -638,6 +646,7 @@ req_recv_done(struct context *ctx, struct conn *conn, struct msg *msg,
     }
 
     if (msg->noforward) {
+        //类似于ping命令, 不需要forward, nc直接回复此类命令
         status = req_make_reply(ctx, conn, msg);
         if (status != NC_OK) {
             conn->err = errno;

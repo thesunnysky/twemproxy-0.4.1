@@ -27,17 +27,19 @@ struct mbuf {
     STAILQ_ENTRY(mbuf) next;    /* next mbuf */
     uint8_t            *pos;    /* read marker */
     uint8_t            *last;   /* write marker */
-    uint8_t            *start;  /* start of buffer (const) */
-    uint8_t            *end;    /* end of buffer (const) */
+    uint8_t            *start;  /* start of buffer (const) */ //mbuf中真正用来存储数据的起始位置
+    uint8_t            *end;    /* end of buffer (const) */ //mbuf中真正用来存储数据的结束位置
 };
 
 STAILQ_HEAD(mhdr, mbuf);
 
+/* mbuf 相关的常数 */
+//0xdeadbeef用来填充已分配但未初始化的内存
 #define MBUF_MAGIC      0xdeadbeef
-#define MBUF_MIN_SIZE   512
-#define MBUF_MAX_SIZE   16777216
-#define MBUF_SIZE       16384
-#define MBUF_HSIZE      sizeof(struct mbuf)
+#define MBUF_MIN_SIZE   512             //mbuf最小为:512字节
+#define MBUF_MAX_SIZE   16777216        //mbuf最大为16Mb
+#define MBUF_SIZE       16384           //默认的mbuf data 的长度, 可通过配置文件来配置
+#define MBUF_HSIZE      sizeof(struct mbuf)  //mbuf header 的长度,也就是struct mbuf的长度
 
 static inline bool
 mbuf_empty(struct mbuf *mbuf)

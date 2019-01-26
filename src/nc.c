@@ -391,6 +391,7 @@ nc_get_options(int argc, char **argv, struct instance *nci)
             break;
 
         case 'm':
+            //nc在启动的时候可以通过参数的方式设置mbuf的大小
             value = nc_atoi(optarg, strlen(optarg));
             if (value <= 0) {
                 log_stderr("nutcracker: option -m requires a non-zero number");

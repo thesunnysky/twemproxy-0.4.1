@@ -21,11 +21,14 @@
 #include <nc_core.h>
 
 static uint32_t nfree_mbufq;   /* # free mbuf */
+//空闲的 mbuf queue, 每次在需要mbuf时都先从当前queue中获取, 如果当前queue为空,表示
+//没有空闲的mbuf, 则再malloc一块新的mbuf
 static struct mhdr free_mbufq; /* free mbuf q */
 
 static size_t mbuf_chunk_size; /* mbuf chunk size - header + data (const) */
 static size_t mbuf_offset;     /* mbuf offset in chunk (const) */
 
+// 首先尝试从free_mbufq中获取一个mbuff,如果free_mbufq没有空余的mbuf,则创建一个新的
 static struct mbuf *
 _mbuf_get(void)
 {
@@ -33,6 +36,7 @@ _mbuf_get(void)
     uint8_t *buf;
 
     if (!STAILQ_EMPTY(&free_mbufq)) {
+        //
         ASSERT(nfree_mbufq > 0);
 
         mbuf = STAILQ_FIRST(&free_mbufq);
@@ -75,26 +79,28 @@ done:
     return mbuf;
 }
 
+//获取一个mbuf, 并对其进行必要的初始化
 struct mbuf *
 mbuf_get(void)
 {
     struct mbuf *mbuf;
     uint8_t *buf;
 
+    //获取一个mbuf, 可以是从free_mbuf queue中取也可以是重新申请一个新的mbuf
     mbuf = _mbuf_get();
     if (mbuf == NULL) {
         return NULL;
     }
 
     buf = (uint8_t *)mbuf - mbuf_offset;
-    mbuf->start = buf;
-    mbuf->end = buf + mbuf_offset;
+    mbuf->start = buf;  //设置mbuf数据部分的起始位置
+    mbuf->end = buf + mbuf_offset;  //设置mbuf数据部分的结束位置
 
     ASSERT(mbuf->end - mbuf->start == (int)mbuf_offset);
     ASSERT(mbuf->start < mbuf->end);
 
-    mbuf->pos = mbuf->start;
-    mbuf->last = mbuf->start;
+    mbuf->pos = mbuf->start;    //设置read position
+    mbuf->last = mbuf->start;   //设置write position
 
     log_debug(LOG_VVERB, "get mbuf %p", mbuf);
 
@@ -115,6 +121,7 @@ mbuf_free(struct mbuf *mbuf)
     nc_free(buf);
 }
 
+//将使用完的mbuf放入到 free_mbuf queue中
 void
 mbuf_put(struct mbuf *mbuf)
 {
@@ -265,6 +272,7 @@ mbuf_init(struct instance *nci)
     nfree_mbufq = 0;
     STAILQ_INIT(&free_mbufq);
 
+    //设置mbuf块的大小, 为mbufdata部分和 header之和,mbuf header的大小是固定的
     mbuf_chunk_size = nci->mbuf_chunk_size;
     mbuf_offset = mbuf_chunk_size - MBUF_HSIZE;
 

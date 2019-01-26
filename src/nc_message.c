@@ -301,6 +301,7 @@ done:
     return msg;
 }
 
+//获取一块新的msg空间并初始化
 struct msg *
 msg_get(struct conn *conn, bool request, bool redis)
 {
@@ -617,11 +618,17 @@ msg_parsed(struct context *ctx, struct conn *conn, struct msg *msg)
      * been parsed and nbuf is the portion of the message that is un-parsed.
      * Parse nbuf as a new message nmsg in the next iteration.
      */
+    /*
+     * Input mbuf 中存在没有被解析的数据, split mbuf就是将当前的msg拆分成已经解析的数
+     * 据(mbuf) 和没有被解析的数据(nbuf), 同时nbuf将会在下一次迭代中用来存放msg
+     */
+    //nbuf中是尚未被解析的message
     nbuf = mbuf_split(&msg->mhdr, msg->pos, NULL, NULL);
     if (nbuf == NULL) {
         return NC_ENOMEM;
     }
 
+    //获取一块新的msg空间
     nmsg = msg_get(msg->owner, msg->request, conn->redis);
     if (nmsg == NULL) {
         mbuf_put(nbuf);
@@ -693,23 +700,24 @@ static rstatus_t
 msg_recv_chain(struct context *ctx, struct conn *conn, struct msg *msg)
 {
     rstatus_t status;
-    struct msg *nmsg;
+    struct msg *nmsg; // next msg
     struct mbuf *mbuf;
     size_t msize;
     ssize_t n;
 
     mbuf = STAILQ_LAST(&msg->mhdr, mbuf, next);
     if (mbuf == NULL || mbuf_full(mbuf)) {
+        //当前msg没有可用的mbuf, 获取一块mbuf
         mbuf = mbuf_get();
         if (mbuf == NULL) {
             return NC_ENOMEM;
         }
-        mbuf_insert(&msg->mhdr, mbuf);
+        mbuf_insert(&msg->mhdr, mbuf);  //将新获取的mbuf插入到msg->mhdr中
         msg->pos = mbuf->pos;
     }
     ASSERT(mbuf->end - mbuf->last > 0);
 
-    msize = mbuf_size(mbuf);
+    msize = mbuf_size(mbuf); //获取mbuf数据段的大小
 
     n = conn_recv(conn, mbuf->last, msize);
     if (n < 0) {
@@ -724,6 +732,7 @@ msg_recv_chain(struct context *ctx, struct conn *conn, struct msg *msg)
     msg->mlen += (uint32_t)n;
 
     for (;;) {
+        //解析刚刚读取的数据, parse后的数据存到了哪里?
         status = msg_parse(ctx, conn, msg);
         if (status != NC_OK) {
             return status;
@@ -752,6 +761,9 @@ msg_recv(struct context *ctx, struct conn *conn)
 
     conn->recv_ready = 1;
     do {
+        // conn->recv_next()的两个函数:  redis_parse_req(struct msg *r) 和
+        // rsp_recv_next(struct context *ctx, struct conn *conn, bool alloc)
+        // 在真正从conn读数据之前，需要分配一个req_msg，用于承载读进来的数据
         msg = conn->recv_next(ctx, conn, true);
         if (msg == NULL) {
             return NC_OK;

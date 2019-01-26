@@ -52,6 +52,8 @@ struct conn {
 
     //conn 对应的output queue, 需要向该conn写的msg会push到该queue中
     struct msg_tqh      omsg_q;          /* outstanding request Q */
+    //每次重新接受一个完整的请求时, rmsg为空, 如果某次读取只读取了请求的一部分,则rmsg
+    // 不为空,下次读取的数据继续追加到当前rmsg中
     struct msg          *rmsg;           /* current message being rcvd */
     struct msg          *smsg;           /* current message being sent */
 
