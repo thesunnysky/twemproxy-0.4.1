@@ -479,6 +479,7 @@ server_connect(struct context *ctx, struct server *server, struct conn *conn)
     }
 
     if (conn->sd > 0) {
+        // 如果已经建立好连接, 则返回
         /* already connected on server connection */
         return NC_OK;
     }
@@ -631,6 +632,7 @@ server_pool_update(struct server_pool *pool)
     return NC_OK;
 }
 
+//计算key的hash值
 static uint32_t
 server_pool_hash(struct server_pool *pool, uint8_t *key, uint32_t keylen)
 {
@@ -648,6 +650,8 @@ server_pool_hash(struct server_pool *pool, uint8_t *key, uint32_t keylen)
     return pool->key_hash((char *)key, keylen);
 }
 
+//core hash路由
+//将请求的key路由到后端的server
 uint32_t
 server_pool_idx(struct server_pool *pool, uint8_t *key, uint32_t keylen)
 {
@@ -713,6 +717,7 @@ server_pool_server(struct server_pool *pool, uint8_t *key, uint32_t keylen)
     return server;
 }
 
+// core 获取key后端对应的server conn
 struct conn *
 server_pool_conn(struct context *ctx, struct server_pool *pool, uint8_t *key,
                  uint32_t keylen)
@@ -727,6 +732,7 @@ server_pool_conn(struct context *ctx, struct server_pool *pool, uint8_t *key,
     }
 
     /* from a given {key, keylen} pick a server from pool */
+    // 获取key对应的后端的server
     server = server_pool_server(pool, key, keylen);
     if (server == NULL) {
         return NULL;
@@ -738,6 +744,7 @@ server_pool_conn(struct context *ctx, struct server_pool *pool, uint8_t *key,
         return NULL;
     }
 
+    //连接后端的server
     status = server_connect(ctx, server, conn);
     if (status != NC_OK) {
         server_close(ctx, conn);

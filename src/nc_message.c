@@ -174,6 +174,7 @@ msg_tmo_min(void)
     return msg_from_rbe(node);
 }
 
+//超时设置
 void
 msg_tmo_insert(struct msg *msg, struct conn *conn)
 {

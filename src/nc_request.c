@@ -291,6 +291,7 @@ ferror:
     return true;
 }
 
+//core message chain相关的函数
 void
 req_server_enqueue_imsgq(struct context *ctx, struct conn *conn, struct msg *msg)
 {
@@ -306,6 +307,7 @@ req_server_enqueue_imsgq(struct context *ctx, struct conn *conn, struct msg *msg
      * in the response anyway!
      */
     if (!msg->noreply) {
+        //time out
         msg_tmo_insert(msg, conn);
     }
 
@@ -357,6 +359,7 @@ req_client_enqueue_omsgq(struct context *ctx, struct conn *conn, struct msg *msg
     ASSERT(msg->request);
     ASSERT(conn->client && !conn->proxy);
 
+                      //head         elm  field
     TAILQ_INSERT_TAIL(&conn->omsg_q, msg, c_tqe);
 }
 
@@ -455,7 +458,7 @@ req_recv_next(struct context *ctx, struct conn *conn, bool alloc)
 static rstatus_t
 req_make_reply(struct context *ctx, struct conn *conn, struct msg *req)
 {
-    struct msg *rsp;
+    struct msg *rsp;    //response msg
 
     rsp = msg_get(conn, false, conn->redis); /* replay */
     if (rsp == NULL) {
@@ -463,11 +466,14 @@ req_make_reply(struct context *ctx, struct conn *conn, struct msg *req)
         return NC_ENOMEM;
     }
 
+    //设置request和response之间的对应关系
     req->peer = rsp;
     rsp->peer = req;
     rsp->request = 0;
 
     req->done = 1;
+    //req_client_enqueue_omsgq() or req_client_dequeue_omsgq()
+    //将req放入到conn->omsg_q
     conn->enqueue_outq(ctx, conn, req);
 
     return NC_OK;
@@ -593,6 +599,7 @@ req_forward(struct context *ctx, struct conn *c_conn, struct msg *msg)
 
     /* enqueue the message (request) into server inq */
     if (TAILQ_EMPTY(&s_conn->imsg_q)) {
+        //向epoll中注册该server conn, 监听的事件为: EPOLLIN | EPOLLOUT | EPOLLET
         status = event_add_out(ctx->evb, s_conn);
         if (status != NC_OK) {
             req_forward_error(ctx, c_conn, msg);
@@ -602,6 +609,7 @@ req_forward(struct context *ctx, struct conn *c_conn, struct msg *msg)
     }
 
     if (!conn_authenticated(s_conn)) {
+        //proxy向后端的server认证(auth)
         status = msg->add_auth(ctx, c_conn, s_conn);
         if (status != NC_OK) {
             req_forward_error(ctx, c_conn, msg);
@@ -610,6 +618,7 @@ req_forward(struct context *ctx, struct conn *c_conn, struct msg *msg)
         }
     }
 
+    //?
     s_conn->enqueue_inq(ctx, s_conn, msg);
 
     req_forward_stats(ctx, s_conn->owner, msg);
@@ -670,7 +679,7 @@ req_recv_done(struct context *ctx, struct conn *conn, struct msg *msg,
     /* do fragment */
     pool = conn->owner;
     TAILQ_INIT(&frag_msgq);
-    status = msg->fragment(msg, pool->ncontinuum, &frag_msgq);
+    status = msg->fragment(msg, pool->ncontinuum, &frag_msgq); //redis_fragment()
     if (status != NC_OK) {
         if (!msg->noreply) {
             conn->enqueue_outq(ctx, conn, msg);
@@ -684,6 +693,7 @@ req_recv_done(struct context *ctx, struct conn *conn, struct msg *msg,
         return;
     }
 
+    //设置conn request和后端server response的对应关系
     status = req_make_reply(ctx, conn, msg);
     if (status != NC_OK) {
         if (!msg->noreply) {
@@ -696,6 +706,7 @@ req_recv_done(struct context *ctx, struct conn *conn, struct msg *msg,
         tmsg = TAILQ_NEXT(sub_msg, m_tqe);
 
         TAILQ_REMOVE(&frag_msgq, sub_msg, m_tqe);
+        //将请求forward到后端具体的server上
         req_forward(ctx, conn, sub_msg);
     }
 

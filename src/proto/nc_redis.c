@@ -2579,6 +2579,7 @@ redis_fragment_argx(struct msg *r, uint32_t ncontinuum, struct msg_tqh *frag_msg
     for (i = 0; i < array_n(r->keys); i++) {        /* for each key */
         struct msg *sub_msg;
         struct keypos *kpos = array_get(r->keys, i);
+        //计算key对应server在一致性hash环上的索引
         uint32_t idx = msg_backend_idx(r, kpos->start, kpos->end - kpos->start);
 
         if (sub_msgs[idx] == NULL) {
@@ -2828,6 +2829,7 @@ redis_handle_auth_req(struct msg *req, struct msg *rsp)
     return msg_append(rsp, rsp_invalid_password.data, rsp_invalid_password.len);
 }
 
+//proxy auth 后端的server
 rstatus_t
 redis_add_auth(struct context *ctx, struct conn *c_conn, struct conn *s_conn)
 {
