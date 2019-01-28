@@ -714,7 +714,7 @@ req_recv_done(struct context *ctx, struct conn *conn, struct msg *msg,
     return;
 }
 
-//core
+//core 获取下一个将要发送的msg
 struct msg *
 req_send_next(struct context *ctx, struct conn *conn)
 {
@@ -724,6 +724,7 @@ req_send_next(struct context *ctx, struct conn *conn)
     ASSERT(!conn->client && !conn->proxy);
 
     if (conn->connecting) {
+        //向后端server发送select db的命令
         server_connected(ctx, conn);
     }
 
@@ -741,6 +742,7 @@ req_send_next(struct context *ctx, struct conn *conn)
     msg = conn->smsg;
     if (msg != NULL) {
         ASSERT(msg->request && !msg->done);
+        //如果当前正在处理的msg(conn->smsg)还没有处理完, 继续处理该conn->smsg
         nmsg = TAILQ_NEXT(msg, s_tqe);
     }
 

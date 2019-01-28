@@ -837,6 +837,7 @@ msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
             break;
         }
 
+        //从conn->imsg_q中获取下一个将要发送的msg
         msg = conn->send_next(ctx, conn);
         if (msg == NULL) {
             break;
@@ -907,7 +908,7 @@ msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
     return (n == NC_EAGAIN) ? NC_OK : NC_ERROR;
 }
 
-//core
+//core 向后端的server发送请求
 rstatus_t
 msg_send(struct context *ctx, struct conn *conn)
 {
@@ -918,6 +919,8 @@ msg_send(struct context *ctx, struct conn *conn)
 
     conn->send_ready = 1;
     do {
+        //req_send_next() or rsp_send_next()
+        //获取要send的msg
         msg = conn->send_next(ctx, conn);
         if (msg == NULL) {
             /* nothing to send */
