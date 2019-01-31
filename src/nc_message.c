@@ -873,6 +873,7 @@ msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
 
         /* adjust mbufs of the sent message */
         for (mbuf = STAILQ_FIRST(&msg->mhdr); mbuf != NULL; mbuf = nbuf) {
+            //先记录当前mbuf->next
             nbuf = STAILQ_NEXT(mbuf, next);
 
             if (mbuf_empty(mbuf)) {
