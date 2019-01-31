@@ -191,6 +191,7 @@ core_stop(struct context *ctx)
 }
 
 //core
+//epoll的读事件处理函数, 具体由conn->recv指向的函数来处理, 该函数由core_core调用
 static rstatus_t
 core_recv(struct context *ctx, struct conn *conn)
 {
@@ -207,6 +208,7 @@ core_recv(struct context *ctx, struct conn *conn)
 }
 
 //core
+//epoll的写事件处理函数, 具体由conn->send指向的函数来处理,由core_core来调用
 static rstatus_t
 core_send(struct context *ctx, struct conn *conn)
 {
@@ -313,7 +315,7 @@ core_timeout(struct context *ctx)
     }
 }
 
-//core
+//epoll的event处理函数, 同时处理读写事件
 rstatus_t
 core_core(void *arg, uint32_t events)
 {

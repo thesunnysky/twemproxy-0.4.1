@@ -795,6 +795,7 @@ msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
 
     TAILQ_INIT(&send_msgq);
 
+    //初始化array
     array_set(&sendv, iov, sizeof(iov[0]), NC_IOV_MAX);
 
     /* preprocess - build iovec */
@@ -808,6 +809,8 @@ msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
     limit = SSIZE_MAX;
 
     for (;;) {
+        //确保当前处理的msg是conn->smsg, 在调用msg = conn->send_next(ctx, conn)时会同时更新conn->smsg
+        //并返回conn->smsg
         ASSERT(conn->smsg == msg);
 
         TAILQ_INSERT_TAIL(&send_msgq, msg, m_tqe);
@@ -815,6 +818,7 @@ msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
         for (mbuf = STAILQ_FIRST(&msg->mhdr);
              mbuf != NULL && array_n(&sendv) < NC_IOV_MAX && nsend < limit;
              mbuf = nbuf) {
+            //先拿到当前mbuf的下一个mbuf, 等待下一次for循环的时候复制给"mbuf: mbuf=nbuf"
             nbuf = STAILQ_NEXT(mbuf, next);
 
             if (mbuf_empty(mbuf)) {
@@ -826,6 +830,8 @@ msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
                 mlen = limit - nsend;
             }
 
+            // 从数组获取下一个可用存储单元的地址,如果数组已满,则先对数组进行扩容, 扩容后的容量是
+            // 当前容量的两倍
             ciov = array_push(&sendv);
             ciov->iov_base = mbuf->pos;
             ciov->iov_len = mlen;
@@ -848,6 +854,7 @@ msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
      * (nsend == 0) is possible in redis multi-del
      * see PR: https://github.com/twitter/twemproxy/pull/225
      */
+    //core
     conn->smsg = NULL;
     if (!TAILQ_EMPTY(&send_msgq) && nsend != 0) {
         n = conn_sendv(conn, &sendv, nsend);
@@ -858,7 +865,7 @@ msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
     nsent = n > 0 ? (size_t)n : 0;
 
     /* postprocess - process sent messages in send_msgq */
-
+    // 遍历send_msgq中的msg
     for (msg = TAILQ_FIRST(&send_msgq); msg != NULL; msg = nmsg) {
         nmsg = TAILQ_NEXT(msg, m_tqe);
 
@@ -872,6 +879,7 @@ msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
         }
 
         /* adjust mbufs of the sent message */
+        //遍历msg中的mbuf
         for (mbuf = STAILQ_FIRST(&msg->mhdr); mbuf != NULL; mbuf = nbuf) {
             //先记录当前mbuf->next
             nbuf = STAILQ_NEXT(mbuf, next);
@@ -895,6 +903,7 @@ msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
         }
 
         /* message has been sent completely, finalize it */
+        //mbuf == NULL, 表示当前msg已经完全被sent完了
         if (mbuf == NULL) {
             conn->send_done(ctx, conn, msg);
         }
@@ -922,12 +931,14 @@ msg_send(struct context *ctx, struct conn *conn)
     do {
         //req_send_next() or rsp_send_next()
         //获取要send的msg
+        //对send_next()调用有两次,一次是这里,还有一次在msg_send_chain中
         msg = conn->send_next(ctx, conn);
         if (msg == NULL) {
             /* nothing to send */
             return NC_OK;
         }
 
+        //向后端server发送msg
         status = msg_send_chain(ctx, conn, msg);
         if (status != NC_OK) {
             return status;

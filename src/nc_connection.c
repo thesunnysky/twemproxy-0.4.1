@@ -391,6 +391,7 @@ conn_recv(struct conn *conn, void *buf, size_t size)
     return NC_ERROR;
 }
 
+//core
 ssize_t
 conn_sendv(struct conn *conn, struct array *sendv, size_t nsend)
 {
@@ -401,6 +402,7 @@ conn_sendv(struct conn *conn, struct array *sendv, size_t nsend)
     ASSERT(conn->send_ready);
 
     for (;;) {
+        //调用writev()向conn->sd发送sendv中的数据
         n = nc_writev(conn->sd, sendv->elem, sendv->nelem);
 
         log_debug(LOG_VERB, "sendv on sd %d %zd of %zu in %"PRIu32" buffers",

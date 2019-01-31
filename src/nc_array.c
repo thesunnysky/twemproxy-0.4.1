@@ -97,7 +97,8 @@ array_idx(struct array *a, void *elem)
     return idx;
 }
 
-/* 为数组扩容 */
+/* 从数组获取下一个可用存储单元的地址,如果数组已满,则对数组进行扩容, 扩容后的容量是
+ * 当前容量的两倍 */
 void *
 array_push(struct array *a)
 {

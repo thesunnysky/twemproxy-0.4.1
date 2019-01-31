@@ -714,7 +714,7 @@ req_recv_done(struct context *ctx, struct conn *conn, struct msg *msg,
     return;
 }
 
-//core 获取下一个将要发送的msg
+//core 获取下一个将要向后端server发送的msg
 struct msg *
 req_send_next(struct context *ctx, struct conn *conn)
 {
@@ -728,6 +728,7 @@ req_send_next(struct context *ctx, struct conn *conn)
         server_connected(ctx, conn);
     }
 
+    //从conn->imsg_q中取出已有的msg
     nmsg = TAILQ_FIRST(&conn->imsg_q);
     if (nmsg == NULL) {
         /* nothing to send as the server inq is empty */
