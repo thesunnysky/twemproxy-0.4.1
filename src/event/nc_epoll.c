@@ -61,7 +61,7 @@ event_base_create(int nevent, event_cb_t cb)
     evb->ep = ep;
     evb->event = event;
     evb->nevent = nevent;
-    evb->cb = cb;
+    evb->cb = cb;   //core_core()
 
     log_debug(LOG_INFO, "e %d with nevent %d", evb->ep, evb->nevent);
 

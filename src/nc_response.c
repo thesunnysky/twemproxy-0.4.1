@@ -230,6 +230,7 @@ rsp_forward_stats(struct context *ctx, struct server *server, struct msg *msg, u
     stats_server_incr_by(ctx, server, response_bytes, msgsize);
 }
 
+//forward response
 static void
 rsp_forward(struct context *ctx, struct conn *s_conn, struct msg *msg)
 {
@@ -262,6 +263,8 @@ rsp_forward(struct context *ctx, struct conn *s_conn, struct msg *msg)
     ASSERT(c_conn->client && !c_conn->proxy);
 
     if (req_done(c_conn, TAILQ_FIRST(&c_conn->omsg_q))) {
+        //设置client conn的写事件, 针对client conn, 一旦client可写,将会从client imsg_q中获取信息写入到
+        //client conn,依次来最终response client的request
         status = event_add_out(ctx->evb, c_conn);
         if (status != NC_OK) {
             c_conn->err = errno;
@@ -271,13 +274,14 @@ rsp_forward(struct context *ctx, struct conn *s_conn, struct msg *msg)
     rsp_forward_stats(ctx, s_conn->owner, msg, msgsize);
 }
 
+//server conn接收到redis server的response
 void
 rsp_recv_done(struct context *ctx, struct conn *conn, struct msg *msg,
               struct msg *nmsg)
 {
-    ASSERT(!conn->client && !conn->proxy);
+    ASSERT(!conn->client && !conn->proxy);  //conn应该是从conn->server
     ASSERT(msg != NULL && conn->rmsg == msg);
-    ASSERT(!msg->request);
+    ASSERT(!msg->request);      //msg应该是response
     ASSERT(msg->owner == conn);
     ASSERT(nmsg == NULL || !nmsg->request);
 

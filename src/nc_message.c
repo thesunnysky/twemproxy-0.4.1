@@ -733,7 +733,7 @@ msg_recv_chain(struct context *ctx, struct conn *conn, struct msg *msg)
     msg->mlen += (uint32_t)n;
 
     for (;;) {
-        //解析刚刚读取的数据, parse后的数据存到了哪里?
+        //解析刚刚读取的数据, parse后放入到mbuf中并forward...?
         status = msg_parse(ctx, conn, msg);
         if (status != NC_OK) {
             return status;
@@ -938,7 +938,7 @@ msg_send(struct context *ctx, struct conn *conn)
             return NC_OK;
         }
 
-        //向后端server发送msg
+        //向后端server发送msg 或者向client_conn写response的数据
         status = msg_send_chain(ctx, conn, msg);
         if (status != NC_OK) {
             return status;
