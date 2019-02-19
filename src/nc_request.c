@@ -638,7 +638,7 @@ req_recv_done(struct context *ctx, struct conn *conn, struct msg *msg,
 {
     rstatus_t status;
     struct server_pool *pool;
-    struct msg_tqh frag_msgq;   // 如果msg需要fragment, fragment_msgq用来存放fragment后的数据
+    struct msg_tqh frag_msgq;   // 如果msg需要fragment, fragment_msq用来存放fragment后的数据
     struct msg *sub_msg;
     struct msg *tmsg; 			/* tmp next message */
 

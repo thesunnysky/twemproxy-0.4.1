@@ -808,6 +808,7 @@ msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
      */
     limit = SSIZE_MAX;
 
+    //将msg->mhdr中的数据写入到send_msgq中
     for (;;) {
         //确保当前处理的msg是conn->smsg, 在调用msg = conn->send_next(ctx, conn)时会同时更新conn->smsg
         //并返回conn->smsg
@@ -865,7 +866,7 @@ msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
     nsent = n > 0 ? (size_t)n : 0;
 
     /* postprocess - process sent messages in send_msgq */
-    // 遍历send_msgq中的msg
+    // 处理send_msgq中的msg
     for (msg = TAILQ_FIRST(&send_msgq); msg != NULL; msg = nmsg) {
         nmsg = TAILQ_NEXT(msg, m_tqe);
 
@@ -918,7 +919,9 @@ msg_send_chain(struct context *ctx, struct conn *conn, struct msg *msg)
     return (n == NC_EAGAIN) ? NC_OK : NC_ERROR;
 }
 
-//core 向后端的server发送请求
+//message chain的
+//根据conn类型的不同,可以实现两种功能:
+//1. (server conn) 向后端的server发送请求; 2. (client conn)向client返回response
 rstatus_t
 msg_send(struct context *ctx, struct conn *conn)
 {
